@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`findData function test suite combined embedded objects and not embedded objects 1`] = `
+Array [
+  Object {
+    "animal": Object {
+      "age": 1,
+      "color": "Black",
+      "name": "Czarny",
+    },
+    "city": "Gliwice",
+    "id": 1,
+    "name": "Grzegorz",
+    "surname": "NieGrzegorz",
+  },
+  Object {
+    "age": 1,
+    "color": "Black",
+    "name": "Czarny",
+  },
+  Object {
+    "friends": Array [
+      Object {
+        "id": 1241,
+        "lastName": "NieAdam",
+        "name": "Adam",
+      },
+    ],
+  },
+  Object {
+    "id": 1241,
+    "lastName": "NieAdam",
+    "name": "Adam",
+  },
+]
+`;
+
+exports[`findData function test suite combined not embedded objects 1`] = `
+Array [
+  Object {
+    "animal": Object {
+      "age": 1,
+      "name": "Czarny",
+    },
+    "city": "Gliwice",
+    "id": 1,
+    "name": "Grzegorz",
+    "surname": "NieGrzegorz",
+  },
+]
+`;
