@@ -1,55 +1,63 @@
+import { ValueOf } from './types/ValueOf';
+
 const checkIfHaveCommonProperty = <T>(
   obj1: Record<string, T>,
   obj2: Record<string, T>,
-): boolean => {
-  for (const key of Object.keys(obj1)) {
-    if (obj1[key] === obj2[key]) return true;
-  }
-  return false;
-};
+): boolean => Object.keys(obj1)
+    .some((key) => obj1[key] === obj2[key]);
 
 const checkIfThereIsAConflict = <T>(
   obj1: Record<string, T>,
   obj2: Record<string, T>,
-): boolean => {
-  for (const key of Object.keys(obj1)) {
-    if (obj2[key] !== undefined && obj1[key] !== obj2[key]) return true;
-  }
-  return false;
+): boolean => Object.keys(obj1)
+    .some((key) => obj2[key] !== undefined && obj1[key] !== obj2[key]);
+
+const checkCommonPropertiesAndConflicts = <T, K>(
+  obj1: Record<string, T>, obj2: Record<string, K>) => checkIfHaveCommonProperty<T | K>(obj1, obj2)
+  && !checkIfThereIsAConflict<T | K>(obj1, obj2);
+
+const helper = <Y>(arr: Record<string, Y>[], obj: Record<string, Y>): boolean => {
+  let result = false;
+  arr.forEach((element: Record<string, Y>) => {
+    if (checkCommonPropertiesAndConflicts<Y, Y>(element, obj)) {
+      Object.assign(element, obj);
+      Object.assign(obj, element);
+      result = true;
+      return;
+    }
+    Object.values(element)
+      .forEach((value: Y) => {
+        if (!value) return;
+        if (Array.isArray(value)) {
+          helper<Y>(value, obj);
+          return;
+        }
+        if (typeof value === 'object') {
+          if (
+            checkCommonPropertiesAndConflicts<ValueOf<Y>, Y>(
+              value as Y & Record<string, ValueOf<Y>>,
+              obj,
+            )
+          ) {
+            Object.assign(value, obj);
+            Object.assign(obj, value);
+            return;
+          }
+          helper(Object.values(value), obj);
+        }
+      });
+  });
+  return result;
 };
 
-export const findData = <T extends Record<string, unknown>, K extends Record<string, unknown>>(
+type Object<V> = Record<string, V>;
+
+export const findData = <T extends Object<ValueOf<T>>, K extends Object<ValueOf<K>>>(
   array: T[], array2: K[]): (T | K)[] => {
   const combined = [...array, ...array2];
   return combined.reduce((acc: (T | K)[], curr: T | K) => {
-    const helper = <Y>(arr: Record<string, Y>[], obj: Record<string, Y>): boolean => {
-      for (const element of arr) {
-        if (checkIfHaveCommonProperty(element, obj) && !checkIfThereIsAConflict(element, obj)) {
-          Object.assign(element, obj);
-          Object.assign(obj, element);
-          return true;
-        }
-        for (const value of Object.values(element)) {
-          if (!value) break;
-          if (Array.isArray(value)) {
-            helper(value, obj);
-            break;
-          }
-          if (typeof value === 'object') {
-            if (checkIfHaveCommonProperty(value as Y & Record<string, any>, obj)
-              && !checkIfThereIsAConflict(value as Y & Record<string, any>, obj)) {
-              Object.assign(value, obj);
-              Object.assign(obj, value);
-              break;
-            }
-            helper(Object.values(value), obj);
-          }
-        }
-      }
-      return false;
-    };
-    const isMerged = helper(acc, curr);
-    if (!isMerged) acc[acc.length] = curr;
+    const isMerged: boolean = helper<ValueOf<T> | ValueOf<K>>(acc, curr);
+    if (!isMerged) acc.push(curr);
     return acc;
   }, []);
 };
