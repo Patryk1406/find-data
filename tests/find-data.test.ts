@@ -32,7 +32,7 @@ describe('findData function test suite', () => {
       .toMatchSnapshot();
   });
   test('combined embedded objects and not embedded objects', () => {
-    const input1: Record<string, string | number | Record<string, string | number>>[] = [
+    const input1: Record<string, number | string | Record<string, string | number>[] | Record<string, string | number>>[] = [
       {
         id: 1,
         name: 'Grzegorz',
@@ -53,7 +53,8 @@ describe('findData function test suite', () => {
         age: 1,
         color: 'Black',
       }];
-    const input2: Record<string, string | { id: number; name: string; }[]>[] = [
+    const input2: Record<string, number | string | Record<string, string | number>[] |
+    Record<string, string | number>>[] = [
       {
         friends: [
           {
@@ -66,9 +67,8 @@ describe('findData function test suite', () => {
         lastName: 'NieAdam',
       }];
 
-    const output: (Record<string, string | number |
-    Record<string, string | number>> |
-    Record<string, string | { id: number, name: string }[]>)[] = findData(input1, input2);
+    const output: Record<string, number | string | Record<string, string | number>[]
+    | Record<string, string | number>>[] = findData(input1, input2);
 
     expect(output)
       .toMatchSnapshot();

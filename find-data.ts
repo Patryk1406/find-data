@@ -1,3 +1,5 @@
+import { CheckCommonPropertiesAndConflicts } from './types/check-common-properties-and.conflicts';
+import { Helper } from './types/helper';
 import { ValueOf } from './types/ValueOf';
 
 const checkIfHaveCommonProperty = <T>(
@@ -12,30 +14,31 @@ const checkIfThereIsAConflict = <T>(
 ): boolean => Object.keys(obj1)
     .some((key) => obj2[key] !== undefined && obj1[key] !== obj2[key]);
 
-const checkCommonPropertiesAndConflicts = <T, K>(
-  obj1: Record<string, T>, obj2: Record<string, K>) => checkIfHaveCommonProperty<T | K>(obj1, obj2)
-  && !checkIfThereIsAConflict<T | K>(obj1, obj2);
+const checkCommonPropertiesAndConflicts: CheckCommonPropertiesAndConflicts = <T>(
+  obj1: Record<string, T>, obj2: Record<string, T>) => checkIfHaveCommonProperty<T>(
+    obj1,
+    obj2,
+  )
+  && !checkIfThereIsAConflict<T>(obj1, obj2);
 
-const helper = <Y>(arr: Record<string, Y>[], obj: Record<string, Y>): boolean => {
-  let result = false;
-  arr.forEach((element: Record<string, Y>) => {
-    if (checkCommonPropertiesAndConflicts<Y, Y>(element, obj)) {
+const helper: Helper = <T>(
+  arr: Record<string, T>[], obj: Record<string, T>): boolean => arr.some((element: Record<string, T>) => {
+    if (checkCommonPropertiesAndConflicts<T>(element, obj)) {
       Object.assign(element, obj);
       Object.assign(obj, element);
-      result = true;
-      return;
+      return true;
     }
     Object.values(element)
-      .forEach((value: Y) => {
+      .forEach((value: T) => {
         if (!value) return;
         if (Array.isArray(value)) {
-          helper<Y>(value, obj);
+          helper<T>(value, obj);
           return;
         }
         if (typeof value === 'object') {
           if (
-            checkCommonPropertiesAndConflicts<ValueOf<Y>, Y>(
-              value as Y & Record<string, ValueOf<Y>>,
+            checkCommonPropertiesAndConflicts<T, Record<string, T>>(
+              value,
               obj,
             )
           ) {
@@ -43,20 +46,17 @@ const helper = <Y>(arr: Record<string, Y>[], obj: Record<string, Y>): boolean =>
             Object.assign(obj, value);
             return;
           }
-          helper(Object.values(value), obj);
+          helper<ValueOf<T>, T>(Object.values(value), obj);
         }
       });
+    return false;
   });
-  return result;
-};
 
-type Object<V> = Record<string, V>;
-
-export const findData = <T extends Object<ValueOf<T>>, K extends Object<ValueOf<K>>>(
-  array: T[], array2: K[]): (T | K)[] => {
+export const findData = <T>(
+  array: Record<string, T>[], array2: Record<string, T>[]): Record<string, T>[] => {
   const combined = [...array, ...array2];
-  return combined.reduce((acc: (T | K)[], curr: T | K) => {
-    const isMerged: boolean = helper<ValueOf<T> | ValueOf<K>>(acc, curr);
+  return combined.reduce((acc: Record<string, T>[], curr: Record<string, T>) => {
+    const isMerged: boolean = helper<T>(acc, curr);
     if (!isMerged) acc.push(curr);
     return acc;
   }, []);
