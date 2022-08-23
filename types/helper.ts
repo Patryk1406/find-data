@@ -1,4 +1,7 @@
+import { AnyObject } from './any-object';
+
 export type Helper = {
-  <T>(arr: Record<string, T>[], obj: Record<string, T>): boolean;
-  <T, K>(arr: Record<string, T>[], obj: Record<string, K>): boolean;
+  <T extends AnyObject, K extends AnyObject>(
+    arr: (T | K)[], obj: T | K): boolean;
+  <T, K>(arr: T[], obj: K): boolean;
 };

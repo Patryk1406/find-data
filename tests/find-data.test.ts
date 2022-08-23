@@ -2,7 +2,14 @@ import { findData } from '../find-data';
 
 describe('findData function test suite', () => {
   test('combined not embedded objects', () => {
-    const input1: Record<string, string | number | Record<string, string | number>>[] = [
+    const input1: ({ id: number, name: string } | {
+      name: string;
+      surname: string;
+      animal: {
+        name: string;
+        age: number;
+      }
+    })[] = [
       {
         id: 1,
         name: 'Grzegorz',
@@ -15,15 +22,32 @@ describe('findData function test suite', () => {
           age: 1,
         },
       }];
-    const input2: Record<string, string | number>[] = [
+    const input2: {
+      id: number;
+      city: string;
+    }[] = [
       {
         id: 1,
         city: 'Gliwice',
       },
     ];
 
-    const output: (Record<string, string | number> |
-    Record<string, string | number | Record<string, string | number>>)[] = findData(
+    const output: ({ id: number, name: string }
+    | { name: string, surname: string, animal: { name: string, age: number } }
+    | { id: number, city: string })[] = findData<{
+      id: number;
+      name: string;
+    } | {
+      name: string;
+      surname: string;
+      animal: {
+        name: string;
+        age: number;
+      };
+    }, {
+      id: number;
+      city: string;
+    }>(
       input1,
       input2,
     );
@@ -32,7 +56,9 @@ describe('findData function test suite', () => {
       .toMatchSnapshot();
   });
   test('combined embedded objects and not embedded objects', () => {
-    const input1: Record<string, number | string | Record<string, string | number>[] | Record<string, string | number>>[] = [
+    const input1: ({ id: number, name: string } |
+    { name: string, surname: string, animal: { name: string, age: number } }
+    | { id: number, city: string } | { age: number, color: string })[] = [
       {
         id: 1,
         name: 'Grzegorz',
@@ -53,8 +79,8 @@ describe('findData function test suite', () => {
         age: 1,
         color: 'Black',
       }];
-    const input2: Record<string, number | string | Record<string, string | number>[] |
-    Record<string, string | number>>[] = [
+    const input2: ({ friends: { id: number, name: string }[] }
+    | { name: string, lastName: string })[] = [
       {
         friends: [
           {
@@ -67,8 +93,35 @@ describe('findData function test suite', () => {
         lastName: 'NieAdam',
       }];
 
-    const output: Record<string, number | string | Record<string, string | number>[]
-    | Record<string, string | number>>[] = findData(input1, input2);
+    const output: ({ id: number, name: string }
+    | { name: string, surname: string, animal: { name: string, age: number } }
+    | { id: number, city: string } | { age: number, color: string }
+    | { friends: { id: number, name: string }[] }
+    | { name: string, lastName: string })[] = findData<{
+      id: number;
+      name: string;
+    } | {
+      name: string;
+      surname: string;
+      animal: {
+        name: string;
+        age: number;
+      };
+    } | {
+      id: number;
+      city: string;
+    } | {
+      age: number;
+      color: string;
+    }, {
+      friends: {
+        id: number;
+        name: string;
+      }[];
+    } | {
+      name: string;
+      lastName: string;
+    }>(input1, input2);
 
     expect(output)
       .toMatchSnapshot();
